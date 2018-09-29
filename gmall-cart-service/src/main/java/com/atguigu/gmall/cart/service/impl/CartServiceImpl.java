@@ -29,7 +29,7 @@ public class CartServiceImpl implements CartService {
     RedisUtil redisUtil;
 
     /**
-     * 根据将要添加的商品，判断在数据库中是否存在
+     * 根据将要添加的商品，判断在数据库中是否存在---在这里测试一下
      *
      * @param cartInfo
      * @return
