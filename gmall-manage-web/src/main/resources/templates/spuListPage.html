@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>spu列表</title>
+    <script type="text/javascript" src="/easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="/easyui/easyloader.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="/easyui/themes/default/easyui.css">
+
+    <!--引入图片上传工具webuploader-->
+    <link rel="stylesheet" type="text/css" href="/webuploader/webuploader.css">
+    <script type="text/javascript" src="/webuploader/webuploader.js"></script>
+</head>
+<body>
+<div class="easyui-panel" title="" data-options="border:true">
+    <!-----------------列表 ----------------------------->
+    <table id="spulist_dg" class="easyui-datagrid" title="spu列表"
+           data-options="singleSelect:true,method:'get' ,toolbar:'#spulist_tb'">
+        <thead>
+        <tr>
+            <th data-options="field:'id'" width="10%">商品id</th>
+            <th data-options="field:'spuName'" width="30%">商品名称</th>
+            <th data-options="field:'description'" width="60%">商品描述</th>
+        </tr>
+        </thead>
+    </table>
+    <!-----------------列表的工具栏----------------------------->
+    <div id="spulist_tb" style="padding:5px;height:auto">
+        <div style="margin-bottom:5px">
+            <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="addSpuInfo()">添加</a>
+            <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editSpuInfo()">编辑</a>
+            <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true">删除</a>
+            <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="addSkuInfo()">增加sku</a>
+            <a href="#" class="easyui-linkbutton" iconCls="icon-search" plain="true" onclick="showSkuInfoList()">
+                sku列表</a>
+        </div>
+        <div>
+            一级分类：
+            <select id="ctg1ForSpuList" class="easyui-combobox" style="width:150px"></select>
+            二级分类：
+            <select id="ctg2ForSpuList" class="easyui-combobox" style="width:150px"
+                    data-options="valueField:'id',textField:'name'" style="width:100px"></select>
+            三级分类：
+            <select id="ctg3ForSpuList" class="easyui-combobox" style="width:150px"
+                    data-options="valueField:'id',textField:'name'" style="width:100px"></select>
+            <a href="javascript:reloadSpuList()" class="easyui-linkbutton" iconCls="icon-search">刷新列表</a>
+        </div>
+    </div>
+</div>
+
+<!--引入添加SPU界面-->
+<div th:include="spuInfoPage"></div>
+
+<!--引入添加SKU界面-->
+<div th:include="skuInfoPage"></div>
+
+<!--引入SKU列表界面-->
+<div th:include="skuListPage"></div>
+
+
+<script language="JavaScript">
+
+    //===================SKU列表 的对话框==========================
+    function showSkuInfoList() {
+
+        //获取选择的SPU商品
+        var supInfo = $("#spulist_dg").datagrid("getSelected");
+
+        if( supInfo == null){
+
+            $.messager.alert('信息', '请先选择商品.', 'warning');
+            return;
+        }
+
+        //打开SKU列表对话框
+        $('#skulist_dlg').dialog('open');
+
+        //初始化
+        initSkuListDlg(supInfo)
+    }
+
+
+
+    //===================新增SKU 的对话框===============================
+    function addSkuInfo() {
+
+        //获取选择的SPU商品
+        var supInfo = $("#spulist_dg").datagrid("getSelected");
+        console.log(supInfo)  //{id: "1", spuName: "测试001", description: "cpl01", catalog3Id: "1", spuSaleAttrList: null, …}
+
+
+        if( supInfo == null){
+
+            $.messager.alert('信息', '请先选择商品.', 'warning');
+            return;
+        }
+        //获取选择的SPU商品的id
+        var spuId = supInfo.id;
+
+        //alert(spuId)
+        //打开增加SKU的对话框
+        $("#sku_dlg").dialog("open");
+
+
+        //初始化SKU的对话框
+        initSkuInfoDlg(supInfo);
+
+    }
+    
+
+    //===================新增SPU 的对话框
+    function addSpuInfo() {
+        //获取选择的三级分类的id
+        var catalog3Id = $("#ctg3ForSpuList").combobox("getValue");
+        if (catalog3Id == "") {
+            //alert( "请先选择三级分类.")
+            $.messager.alert('信息', '请先选择三级分类.', 'warning');
+
+        } else {
+
+            //$("#attrId").val("");
+            //清除文本框中内容
+            //$("#attrName").textbox('clear');
+
+
+            //alert( "id不为空，可以添加")
+            $('#spu_dlg').dialog('open');
+
+            //编写datagrid的初始化方法,初始化 编辑spu界面 数据表格的 按钮和列头
+            initSpuInfoDlg();
+
+        }
+    }
+
+
+    /*显示所有的一级分类
+     * valueField:'id', 为需要显示一级分类的id
+     textField:'name'，为需要显示一级分类的name值
+     * */
+    //使用Javascript创建下拉列表框
+    $("#ctg1ForSpuList").combobox({
+        url: 'getCatalog1',
+        valueField: 'id',
+        textField: 'name',
+        /*选择器，用于获取选中的一级菜单*/
+        onSelect: function (rec) {
+
+            /*当切换一级菜单时，需要清空二级和三级菜单*/
+            $("#ctg2ForSpuList").combobox("clear");
+            $("#ctg3ForSpuList").combobox("clear");
+
+
+            /*根据选中一级菜单的id，发送ajax请求，获取对应二级菜单*/
+            var url = "getCatalog2?catalog1Id=" + rec.id;
+
+            /*将数据显示在二级菜单中*/
+            $("#ctg2ForSpuList").combobox("reload", url);
+        }
+    });
+
+    $("#ctg2ForSpuList").combobox({
+        onSelect: function (rec) {
+
+            /*当切换二级菜单时，需要清空三级菜单*/
+            $("#ctg3ForSpuList").combobox("clear");
+
+            /*根据选中二级菜单的id，发送ajax请求，获取对应三级菜单*/
+            var url = "getCatalog3?catalog2Id=" + rec.id;
+
+            /*将数据显示在三级菜单中*/
+            $("#ctg3ForSpuList").combobox("reload", url);
+        }
+    });
+
+    /*根据三级菜单，显示对应的商品信息*/
+    function reloadSpuList() {
+       // alert(1)
+
+        //根据三级分类id 显示商品信息
+        var catalog3Id = $("#ctg3ForSpuList").combobox("getValue");
+
+        //根据三级分类的id，获取对应商品信息，并显示在表格中
+        $("#spulist_dg").datagrid({url: 'getSpuList?catalog3Id=' + catalog3Id});
+
+    }
+
+</script>
+
+</body>
+</html>

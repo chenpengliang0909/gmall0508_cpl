@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<!--【平台属性管理】面板-->
+<!--在表格中引用下面的按钮组,和下拉选项-->
+<table id="dg" class="easyui-datagrid" title="平台属性列表" style="height:100%"
+       data-options="toolbar:'#tb',singleSelect:true,collapsible:true">
+    <thead>
+    <tr>
+        <th data-options="field:'id',width:200">平台属性ID</th>
+        <th data-options="field:'attrName',width:200">平台属性名称</th>
+    </tr>
+    </thead>
+</table>
+
+<div id="tb" style="padding:5px;height:auto">
+    <div style="margin-bottom:5px">
+        <a href="javascript:addAttrInfo()" class="easyui-linkbutton" iconCls="icon-add" plain="true">添加</a>
+        <a href="javascript:editAttrInfo()" class="easyui-linkbutton" iconCls="icon-edit" plain="true">编辑</a>
+        <a href="javascript:deleteAttrInfo()" class="easyui-linkbutton" iconCls="icon-remove" plain="true">删除</a>
+    </div>
+    <div>
+        一级分类:<select id="ctg1ForAttrList" class="easyui-combobox" style="width:150px;"></select>
+        二级分类:<select id="ctg2ForAttrList" class="easyui-combobox" style="width:150px;"
+                     data-options="valueField:'id',textField:'name'"></select>
+        三级分类:<select id="ctg3ForAttrList" class="easyui-combobox" style="width:150px;"
+                     data-options="valueField:'id',textField:'name'"></select>
+
+        <a href="javascript:reloadAttrList()" class="easyui-linkbutton" data-options="iconCls:'icon-search'"
+           style="width:110px">刷新属性列表</a>
+    </div>
+
+</div>
+
+<!--新增属性的对话框-->
+<div id="dlg" class="easyui-dialog" title="属性编辑" style="width:600px;height:500px;padding:10px"
+     closed="true" data-options="iconCls:'icon-save',resizable:true,modal:true" buttons="#bb">
+    <form id="attrForm">
+        <br/>
+        <label>属性名称:</label>
+        <input id="attrName" name="attrName" class="easyui-textbox" data-options="" style="width:100px"/>
+        <input id="attrId" name="attrId" type="hidden"/>
+        <br/><br/>
+        <table id="dg_av" class="easyui-datagrid" title="属性值列表"></table>
+    </form>
+</div>
+
+<div id="bb">
+    <a href="#" id="save_attr_btn" class="easyui-linkbutton">保存</a>
+    <a href="#" id="close_attr_btn" class="easyui-linkbutton">关闭</a>
+</div>
+
+<script language="JavaScript">
+
+
+    //=====================删除属性========================
+    function deleteAttrInfo() {
+        var rowSelect = $('#dg').datagrid('getSelected');
+        if (rowSelect == null) {
+            $.messager.alert('信息', '请先选择需要删除的平台属性.', 'warning');
+        } else {
+
+            var attrId = rowSelect.id;
+            var attrName = rowSelect.attrName;
+
+            $.extend($.messager.defaults, {
+                ok: "确定",
+                cancel: "取消"
+            });
+
+            $.messager.confirm('提示', '您确定要删除【' + attrName + '】属性吗?', function (result) {
+                //点击确定，result=true
+                //点击取消，result=false
+
+                /*
+                 0、获取需要删除的属性名称
+                 *1、获取需要删除的属性的id,发送ajax请求
+                 * 2、根据属性id，在base_attr_value表中，删除对应的属性值
+                 * 3、根据属性id，在base_attr_info表中，删除对应的属性
+                 *
+                 * */
+                if (result) {
+                    //alert('confirmed: ' + result);
+                    $.post(
+                        "deleteAttr",
+                        {'attrId': attrId, '_method': 'delete'},
+                        function (result) {
+                            //说明成功了
+                            if (result.code == 0) {
+                                //成功后给出提示
+                                $.messager.show({
+                                    title: '提示',
+                                    msg: result.msg,
+                                    timeout: 1000,
+                                    showType: 'fade',
+                                    style: {
+                                        right: '',
+                                        bottom: ''
+                                    }
+                                });
+                            }
+                            //删除成功，刷平台属性列表
+                            reloadAttrList();
+                        }
+                    );
+
+                }
+            });
+        }
+    }
+
+    //===============编辑属性=================
+    function editAttrInfo() {
+        //获取需要编辑的属性，即找到属性列表中的选中项
+        //返回第一个被选中的行或如果没有选中的行则返回null。
+        var rowSelect = $('#dg').datagrid('getSelected');
+        if (rowSelect == null) {
+            $.messager.alert('信息', '请先选择需要编辑的平台属性.', 'warning');
+        } else {
+
+
+
+            //1、获取选中项的平台属性id和name，根据属性id，获取到对应属性值
+            var attrId = rowSelect.id;
+            var attrName = rowSelect.attrName;
+
+            console.log(rowSelect);
+
+            //根据属性id，获取到对应属性值
+            $.get(
+                "getAttrValue",
+                {attrId: attrId},
+                function (result) {
+
+                    //2、弹出编辑界面，将平台属性名称进行回显
+                    $('#dlg').dialog('open');
+                    //编写datagrid的初始化方法,初始化按钮和列头
+                    initAttrValueDatagrid();
+
+                    console.log(result.data);
+
+                    attrValueShow(result.data);
+                }
+            );
+
+
+            //3、将属性值进回显
+            //将属性名称回显
+            $("#attrName").textbox('setValue', attrName);
+
+            //设置隐藏域中属性id,用于编辑提交
+            $("#attrId").val(attrId);
+            console.log($("#attrId").val());
+        }
+
+    }
+
+    //用于回显属性值
+    function attrValueShow(data) {
+
+        //datagrid清空数据
+        $('#dg_av').datagrid('loadData', {total: 0, rows: []});
+
+        //将属性值回显在属性值列表中
+        $.each(data, function () {
+
+            $('#dg_av').datagrid('appendRow', {
+                id: this.id,
+                valueName: this.valueName
+            });
+
+        });
+    }
+
+    //===============新增属性：保存功能=================
+    $(function () {
+
+        //关闭按钮
+        $("#close_attr_btn").click(function () {
+
+            $('#dlg').dialog('close');
+
+        });
+
+
+        //界面加载完成之后,给保存按钮绑定单击事件
+        $("#save_attr_btn").click(function () {
+
+            var attrName = $("#attrName").textbox('getValue');
+
+            var attr_id = $("#attrId").val();
+
+            //当属性名称为空时
+            if (attrName == '') {
+                $.messager.alert('信息', '属性名称不能为空', 'warning');
+            } else {
+                var attrJson = {};
+                /*
+                 * 1、获取【属性名称】  getValue  获取组件的值。
+                 * 2、获取【用户输入的属性值】，  getRows none 返回当前页(当前表格)的所有行。
+                 * */
+
+                var rows = $('#dg_av').datagrid('getRows');
+                console.log(rows);
+                //遍历所有表格行数
+                $.each(rows, function (i) {
+
+                    //console.log("编号"+i)
+                    //console.log("遍历的想"+json)
+                    //
+
+                    //将所有的属性值，都添加带json的 集合中
+                    attrJson["attrValueList[" + i + "].id"] = this.id;
+                    attrJson["attrValueList[" + i + "].valueName"] = this.valueName;
+
+                });
+
+                //将属性id添加到json中
+                attrJson["id"] = attr_id;
+
+                //将属性名称添加到json中
+                attrJson["attrName"] = attrName;
+                //获取选择的三级分类的id,添加到json中
+                attrJson["catalog3Id"] = $("#ctg3ForAttrList").combobox("getValue");
+
+                console.log(attrJson);
+
+                //向后台发送ajax请求
+                $.post(
+                    "saveAttr",
+                    attrJson,
+                    function (result) {
+                        //说明成功了
+                        if (result.code == 0) {
+                            //成功后给出提示
+                            $.messager.show({
+                                title: '提示',
+                                msg: result.msg,
+                                timeout: 1000,
+                                showType: 'fade',
+                                style: {
+                                    right: '',
+                                    bottom: ''
+                                }
+                            });
+                        }
+
+                        //保存完成之后，关闭对话框
+                        $('#dlg').dialog('close');
+
+                        //添加成功，刷平台属性列表
+                        reloadAttrList();
+                    });
+
+
+            }
+        });
+
+    });
+
+    /*显示所有的一级分类
+     * valueField:'id', 为需要显示一级分类的id
+     textField:'name'，为需要显示一级分类的name值
+     * */
+    //使用Javascript创建下拉列表框
+    $("#ctg1ForAttrList").combobox({
+        url: 'getCatalog1',
+        valueField: 'id',
+        textField: 'name',
+        /*选择器，用于获取选中的一级菜单*/
+        onSelect: function (rec) {
+
+            /*当切换一级菜单时，需要清空二级和三级菜单*/
+            $("#ctg2ForAttrList").combobox("clear");
+            $("#ctg3ForAttrList").combobox("clear");
+
+
+            /*根据选中一级菜单的id，发送ajax请求，获取对应二级菜单*/
+            var url = "getCatalog2?catalog1Id=" + rec.id;
+
+            /*将数据显示在二级菜单中*/
+            $("#ctg2ForAttrList").combobox("reload", url);
+        }
+    });
+
+    $("#ctg2ForAttrList").combobox({
+        onSelect: function (rec) {
+
+            /*当切换二级菜单时，需要清空三级菜单*/
+            $("#ctg3ForAttrList").combobox("clear");
+
+            /*根据选中二级菜单的id，发送ajax请求，获取对应三级菜单*/
+            var url = "getCatalog3?catalog2Id=" + rec.id;
+
+            /*将数据显示在三级菜单中*/
+            $("#ctg3ForAttrList").combobox("reload", url);
+        }
+    });
+
+    /*根据三级菜单，显示对应的属性名称*/
+    function reloadAttrList() {
+
+        //获取选择的三级分类的id
+        var catalog3Id = $("#ctg3ForAttrList").combobox("getValue");
+
+        //根据三级分类的id，获取对应属性信息，并显示在表格中
+        $("#dg").datagrid({url: 'getAttrList?catalog3Id=' + catalog3Id});
+
+    }
+
+    /*新增属性的对话框*/
+    function addAttrInfo() {
+        //获取选择的三级分类的id
+        var catalog3Id = $("#ctg3ForAttrList").combobox("getValue");
+        if (catalog3Id == "") {
+            //alert( "请先选择三级分类.")
+            $.messager.alert('信息', '请先选择三级分类.', 'warning');
+
+        } else {
+
+            $("#attrId").val("");
+            //清除文本框中内容
+            $("#attrName").textbox('clear');
+
+            //  $("#dg_av").datagrid({url:''});
+
+            //新增属性，在弹出新增对话框时，需要清除表格之前的内容
+            //datagrid清空数据  loadData data 加载本地数据，旧的行将被移除。data必须返回包含'total'和'rows'
+            $('#dg_av').datagrid('loadData', {total: 0, rows: []});
+
+
+            //alert( "id不为空，可以添加")
+            $('#dlg').dialog('open');
+
+            //编写datagrid的初始化方法,初始化按钮和列头
+            initAttrValueDatagrid();
+
+        }
+    }
+    /*初始化按钮和列头方法*/
+    function initAttrValueDatagrid() { //dg_av
+        datagrid = $('#dg_av').datagrid({
+            columns: [[
+                {field: 'id', title: '编号', width: '50%'},
+                {
+                    field: 'valueName', title: '属性值名称', width: '50%',
+                    editor: {   //开启编辑
+                        type: 'validatebox', options: {required: true}
+                    }
+                }
+            ]],
+            toolbar: [{
+                text: '添加',
+                iconCls: 'icon-edit',
+                handler: function () {
+                    /*点击按钮时，会调用该方法*/
+                    //alert('编辑按钮')
+
+                    /*
+                     * appendRow方法：追加一个新行。新行将被添加到最后的位置。
+                     * 参数为：行，具体为行包含的列
+                     * */
+                    datagrid.datagrid('appendRow', {
+                        id: '',
+                        valueName: '默认值'
+                    });
+                }
+            }, '-', {
+                text: '删除',
+                iconCls: 'icon-remove',
+                handler: function () {
+                    /*点击按钮时，会调用该方法*/
+                    /*
+                     * 删除行 步骤：
+                     * 1、获取需要删除的行 getSelected()
+                     * 2、获取需要删除的行的id   getRowIndex()
+                     * 3、根据id删除行   deleteRow()
+                     *
+                     * */
+                    //返回第一个被选中的行或如果没有选中的行则返回null。
+                    //var rowSelect = $('#dg_av').datagrid('getSelected');
+
+                    //getSelections none 返回所有被选中的行，当没有记录被选中的时候将返回一个空数组。
+                    var rowSelects = datagrid.datagrid('getSelections');
+
+                    //console.log( rowSelects );
+
+                    //当没有选择行时，不能删除
+                    if (rowSelects.length != 0) {
+                        //遍历所有选择行
+                        $.each(rowSelects, function () {
+                            //逐行删除选择的行
+                            var rowIndex = datagrid.datagrid('getRowIndex', this);
+                            datagrid.datagrid("deleteRow", rowIndex);
+                        });
+
+                    } else {
+                        $.messager.alert('提示', '请选择需要删除的属性值.', 'warning');
+                    }
+                }
+            }],
+            onDblClickRow: function (rowIndex, rowData) {    //开启编辑
+                //双击开启编辑行
+                datagrid.datagrid("beginEdit", rowIndex);
+                //设定当失去焦点时,退出编辑状态
+                var valueName = rowData.valueName;
+                $("input.datagrid-editable-input").val(valueName).bind("blur", function (evt) {
+                    datagrid.datagrid('endEdit', rowIndex);
+                });
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html>

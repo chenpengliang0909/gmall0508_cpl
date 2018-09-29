@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+
+    <!--在界面中引入easyUI的资源：JS Css文件等
+        Jquery文件需要在easyUI之前引入
+        静态资源的 【/】 表示【statics目录】
+    -->
+    <link rel="stylesheet" type="text/css" href="/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="/easyui/themes/icon.css">
+    <script type="text/javascript" src="/easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="/easyui/easyloader.js"></script>
+    <script type="text/javascript" src="/easyui/locale/easyui-lang-zh_CN.js"></script>
+
+    <!--引入和图片上传相关的-->
+    <script type="text/javascript" src="/easyui/datagrid-detailview.js"></script>
+    <link rel="stylesheet" type="text/css" href="/easyui/webuploader/webuploader.css">
+    <script type="text/javascript" src="/easyui/webuploader/webuploader.js"></script>
+
+
+</head>
+<body class="easyui-layout">
+    <div data-options="region:'north',border:false" style="height:60px;background:#B3DFDA;padding:10px">
+        <h1>商品后台管理系统</h1>
+    </div>
+
+    <div data-options="region:'west',split:true,title:'West'" style="width:150px;padding:10px;">
+
+        <!--左边手风琴：折叠菜单-->
+        <div class="easyui-accordion" style="width:130px;height:100%;">
+            <div title="基本信息管理" data-options="iconCls:'icon-ok'" style="overflow:auto;">
+                <ul class="nav">
+                    <li><a href="javascript:add_tab('平台属性管理','attrListPage')" style="text-decoration:none;">属性管理</a></li>
+                </ul>
+            </div>
+
+            <div title="Help" data-options="iconCls:'icon-help'">
+                <ul class="nav">
+                    <li><a href="javascript:add_tab('商品SPU管理','spuListPage')" style="text-decoration:none;">SUP管理</a></li>
+                </ul>
+            </div>
+            <div title="TreeMenu" data-options="iconCls:'icon-search'">
+                <ul class="nav">
+                    <li><a href="" style="text-decoration:none;">暂时未开放</a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <div data-options="region:'east',split:true,collapsed:true,title:'East'" style="width:100px;padding:10px;">
+        右
+    </div>
+
+    <div data-options="region:'south',border:false" style="height:50px;background:#A9FACD;padding:10px;">
+        底部
+    </div>
+
+    <!--中部-->
+    <div data-options="region:'center',title:'Center'">
+        <div id="tt" class="easyui-tabs" style="height:100%;">
+
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+        /*方法作用，在对应的id选择器的标签中，会添加一个选项卡面板，选项卡面板的显示内容，则为URL连接返回的界面
+        包括都有标题和一些小的按钮工具菜单*/
+        function add_tab(title,url){
+
+            //exists  表明指定的面板是否存在，'which'参数可以是选项卡面板的标题或索引。
+            var boo = $("#tt").tabs('exists',title);
+            if(!boo){
+                $("#tt").tabs('add',{
+                    title:title,
+                    href:url,
+                    closable:true
+                });
+            }else{
+                //select 选择一个选项卡面板，'which'参数可以是选项卡面板的标题或者索引。
+                $("#tt").tabs('select',title);
+            }
+
+
+
+        }
+
+    </script>
+
+</body>
+
+</html>

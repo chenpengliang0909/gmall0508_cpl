@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--名称空间为：mapper接口的全类名-->
+<mapper namespace="com.atguigu.gmall.manage.mapper.BaseCatalog2Mapper">
+
+    <!-- 查询一级分类id下的所有二级分类id的所有三级分类的数据 -->
+
+    <select id="queryAllCatalog" resultMap="queryAllCatalogMap">
+
+        SELECT
+                b2.id b2_id,b2.*,
+                b3.id b3_id,b3.*
+        FROM
+            base_catalog2 b2,
+            base_catalog3 b3
+        WHERE
+            b2.id = b3.catalog2_id
+        AND b2.catalog1_id = #{catalog1Id}
+
+    </select>
+
+    <!-- List<BaseCatalog2> queryAllCatalog(String catalog1Id) -->
+
+    <resultMap id="queryAllCatalogMap" type="com.atguigu.gmall.bean.BaseCatalog2" autoMapping="true">
+
+        <result column="b2_id" property="id"></result>
+
+        <!-- 三级分类-->
+        <collection property="baseCatalog3List" ofType="com.atguigu.gmall.bean.BaseCatalog3" autoMapping="true">
+
+            <result column="b3_id" property="id"></result>
+
+        </collection>
+
+    </resultMap>
+
+</mapper>

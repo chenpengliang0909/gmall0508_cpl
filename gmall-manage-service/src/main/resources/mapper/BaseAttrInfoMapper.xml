@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--名称空间为：mapper接口的全类名-->
+<mapper namespace="com.atguigu.gmall.manage.mapper.BaseAttrInfoMapper">
+
+    <!--      List<BaseAttrInfo> selectAttrListByValueId(String valueId);
+             //根据拿到的平台属性值id，查询对应的平台属性
+     -->
+
+    <select id="selectAttrListByValueId" parameterType="String" resultMap="selectAttrListByValueIdMap">
+        SELECT
+                attr.id attr_id,attr.attr_name,attr.catalog3_id attr_catalog3_id,attr.is_enabled attr_is_enabled,
+                val.id val_id,val.value_name,val.attr_id val_attr_id,val.is_enabled val_is_enabled
+        FROM
+                base_attr_info attr,
+                base_attr_value val
+        WHERE
+                attr.id = val.attr_id
+        AND val.id IN (${valueIds})
+
+
+    </select>
+    
+    <resultMap id="selectAttrListByValueIdMap" type="com.atguigu.gmall.bean.BaseAttrInfo">
+
+        <id column="attr_id" property="id"></id>
+        <result column="attr_name" property="attrName"></result>
+        <result column="attr_catalog3_id" property="catalog3Id"></result>
+        <result column="attr_is_enabled" property="isEnabled"></result>
+
+        <collection property="attrValueList" ofType="com.atguigu.gmall.bean.BaseAttrValue">
+
+            <id column="val_id" property="id"></id>
+            <result column="value_name" property="valueName"></result>
+            <result column="val_attr_id" property="attrId"></result>
+            <result column="val_is_enabled" property="isEnabled"></result>
+        </collection>
+
+    </resultMap>
+
+</mapper>

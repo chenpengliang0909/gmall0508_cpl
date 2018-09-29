@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--名称空间为：mapper接口的全类名-->
+<mapper namespace="com.atguigu.gmall.manage.mapper.SkuSaleAttrValueMapper">
+
+    <!--如下为老师的方法-->
+    <!--  List<SpuSaleAttr> selectSpuSaleAttrListCheckBySku(@Param("spuId") Integer spuId,@Param("skuId") Integer skuId);-->
+    <!--id:为方法名称-->
+<!--    <select id="selectSpuSaleAttrListCheckBySku" resultMap="selectSpuSaleAttrListCheckBySkuMap">
+        SELECT
+            sa.id as sa_id,
+            sv.id as sv_id,
+            sa.*,
+            sv.*,
+            ssv.sku_id,
+
+        IF (ssv.sku_id, 1, 0) as isChecked
+        FROM
+            spu_sale_attr sa
+        INNER JOIN spu_sale_attr_value sv ON sa.sale_attr_id = sv.sale_attr_id
+        AND sa.spu_id = sv.spu_id
+        AND sa.spu_id = #{spuId}
+        LEFT JOIN sku_sale_attr_value ssv ON sa.sale_attr_id = ssv.sale_attr_id
+        AND sv.sale_attr_id = ssv.sale_attr_id
+        AND sv.id = ssv.sale_attr_value_id
+        AND ssv.sku_id = #{skuId}
+
+    </select>
+
+    <resultMap id="selectSpuSaleAttrListCheckBySkuMap" type="com.atguigu.gmall.bean.SpuSaleAttr" autoMapping="true">
+
+        <result property="id" column="sa_id"></result>
+        <collection property="spuSaleAttrValueList" ofType="com.atguigu.gmall.bean.SpuSaleAttrValue" autoMapping="true">
+            <result property="id" column="sv_id"></result>
+        </collection>
+
+    </resultMap>-->
+
+
+
+    <select id="selectSpuSaleAttrListCheckBySku" resultMap="selectSpuSaleAttrListCheckBySkuMap">
+        SELECT
+            sa.id sa_id,sa.spu_id,sa.sale_attr_id ,sa.sale_attr_name,
+            sv.id sv_id,sv.spu_id sv_spu_id,sv.sale_attr_id sv_sale_attr_id,sv.sale_attr_value_name,
+            ssv.sku_id,
+        IF (ssv.sku_id, 1, 0) isChecked
+        FROM
+        spu_sale_attr sa
+        INNER JOIN spu_sale_attr_value sv ON sa.sale_attr_id = sv.sale_attr_id
+        AND sa.spu_id = sv.spu_id
+        AND sa.spu_id = #{spuId}
+        LEFT JOIN sku_sale_attr_value ssv ON sa.sale_attr_id = ssv.sale_attr_id
+        AND sv.sale_attr_id = ssv.sale_attr_id
+        AND sv.id = ssv.sale_attr_value_id
+        AND ssv.sku_id = #{skuId}
+
+    </select>
+
+    <resultMap id="selectSpuSaleAttrListCheckBySkuMap" type="com.atguigu.gmall.bean.SpuSaleAttr">
+
+        <!-- 封装：SpuSaleAttr -->
+        <id column="sa_id" property="id"></id>
+        <result column="spu_id" property="spuId"></result>
+        <result column="sale_attr_id" property="saleAttrId"></result>
+        <result column="sale_attr_name" property="saleAttrName"></result>
+
+        <collection property="spuSaleAttrValueList" ofType="com.atguigu.gmall.bean.SpuSaleAttrValue">
+
+            <!--封装：SpuSaleAttrValue-->
+            <id  column="sv_id" property="id"></id>
+            <result column="sv_spu_id" property="spuId"></result>
+            <result column="sv_sale_attr_id" property="saleAttrId"></result>
+            <result column="sale_attr_value_name" property="saleAttrValueName"></result>
+            <result column="isChecked" property="isChecked"></result>
+
+        </collection>
+
+    </resultMap>
+
+
+
+    <!--  List<SkuInfo> selectSkuSaleAttrValueListBySpu(@Param("spuId") Integer spuId);  -->
+
+    <select id="selectSkuSaleAttrValueListBySpu" parameterType="int" resultMap="selectSkuSaleAttrValueListBySpuMap">
+
+        SELECT
+            skui.id AS skui_id,
+            skui.spu_id,
+            skui.price,
+            skui.sku_name,
+            skui.sku_desc,
+            skui.weight,
+            skui.catalog3_id,
+            skui.sku_default_img,
+
+            ssav.id AS ssav_id,
+            ssav.sku_id,
+            ssav.sale_attr_id,
+            ssav.sale_attr_value_id,
+            ssav.sale_attr_name,
+            ssav.sale_attr_value_name
+        FROM
+            sku_info skui,
+            sku_sale_attr_value ssav
+        WHERE
+            skui.id = ssav.sku_id
+        AND skui.spu_id = #{spuId}
+
+
+    </select>
+
+    <resultMap id="selectSkuSaleAttrValueListBySpuMap" type="com.atguigu.gmall.bean.SkuInfo">
+
+        <id column="skui_id" property="id"></id>
+        <result column="spu_id" property="spuId"></result>
+        <result column="price" property="price"></result>
+        <result column="sku_name" property="skuName"></result>
+        <result column="weight" property="weight"></result>
+        <result column="sku_desc" property="skuDesc"></result>
+        <result column="catalog3_id" property="catalog3Id"></result>
+        <result column="sku_default_img" property="skuDefaultImg"></result>
+
+        <collection  property="skuSaleAttrValueList" ofType="com.atguigu.gmall.bean.SkuSaleAttrValue">
+            <id column="ssav_id" property="id" ></id>
+            <result column="sku_id" property="skuId" ></result>
+            <result column="sale_attr_id" property="saleAttrId" ></result>
+            <result column="sale_attr_value_id" property="saleAttrValueId" ></result>
+            <result column="sale_attr_name" property="saleAttrName" ></result>
+            <result column="sale_attr_value_name" property="saleAttrValueName" ></result>
+
+        </collection>
+        
+    </resultMap>
+
+
+
+    <!-- 查询所有一级分类id下的所有二级分类id的所有三级分类的数据 -->
+
+
+
+</mapper>
+
+
+
