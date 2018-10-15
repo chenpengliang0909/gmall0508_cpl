@@ -6,14 +6,17 @@ import com.atguigu.gmall.annotation.LoginRequire;
 import com.atguigu.gmall.bean.CartInfo;
 import com.atguigu.gmall.bean.SkuInfo;
 import com.atguigu.gmall.constant.AppConstant;
+import com.atguigu.gmall.pojo.Massage;
 import com.atguigu.gmall.service.CartService;
 import com.atguigu.gmall.service.SkuService;
 import com.atguigu.gmall.util.CookieUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,6 +36,29 @@ public class CartController {
 
     @Reference
     SkuService skuService;
+
+    /***
+     * 删除购物车商品
+     */
+    @LoginRequire(needSuccess = false)
+    @DeleteMapping("deleteCartInfo")
+    @ResponseBody
+    public Massage deleteCartInfo(HttpServletRequest request,String ids){
+
+        //判断用户是否登录
+        String userId = (String) request.getAttribute("userId");//从请求中获取用户的id，这个id是在拦截器中放入的 "1"
+
+        if(StringUtils.isNotBlank(userId)){ //说明登录了，操作数据库
+
+            cartService.deleteCartInfoAfterOrder(ids,userId); //删除数据库中商品后，同时同步到Redis中
+
+        }else{ //说明没有登录，操作Cookie
+
+        }
+
+        return Massage.success();
+    }
+
 
     /**
      * 购物车列表界面，每次勾选和取消勾选商品时，会发送的请求
@@ -100,8 +126,11 @@ public class CartController {
 
         //判断用户是否登录
         String userId = (String) request.getAttribute("userId");//从请求中获取用户的id，这个id是在拦截器中放入的 "1"
-
         if(StringUtils.isNotBlank(userId)){ //说明登录了
+
+            String nickName = (String) request.getAttribute("nickName");
+
+
 
             //从Redis中取出数据
             cartInfos =  cartService.getCartInfosFromCacheByUserId(userId);
@@ -109,6 +138,9 @@ public class CartController {
                 //于是从数据库中取
                 cartInfos =  cartService.getCartInfosFromDbByUserId(userId);
             }
+
+            //将用户登录昵称返回给界面
+            map.put("nickName",nickName);
 
         }else{ //说明没有登录
 
@@ -128,6 +160,7 @@ public class CartController {
 
 
         map.put("totalPrice",totalPrice);
+
         return "cartList";
     }
 
@@ -245,7 +278,7 @@ public class CartController {
              */
             cartService.flushCartCacheByUserId(userId);
         }
-        return "redirect:/cartSuccess";
+        return "redirect:/cartSuccess?num="+num+"&skuId="+skuId;
     }
 
     //判断 更新还是插入 购物车数据
@@ -263,8 +296,16 @@ public class CartController {
     }
 
     @RequestMapping("cartSuccess")
-    public String cartSuccess(){
+    public String cartSuccess(HttpServletRequest request,ModelMap map){
 
+        //从请求参数获取数量
+        String skuNum = request.getParameter("num");
+        String skuId = request.getParameter("skuId");
+
+        SkuInfo skuInfo = skuService.getSkuById(skuId);
+
+        map.put("skuNum",skuNum);
+        map.put("skuInfo",skuInfo);
         return "success";
     }
 

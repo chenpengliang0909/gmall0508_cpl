@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+
 </head>
 <body>
 
@@ -35,7 +36,7 @@
 
                     <div>
                         <ol>
-                            <li><input type="checkbox" class="check" th:value="${cartInfo.skuId}"
+                            <li><input type="checkbox" class="check" th:attr="cartInfoId=${cartInfo.id}"  th:value="${cartInfo.skuId}"
                                        onchange="checkSku(this)"
                                        th:checked="(${cartInfo.isChecked}==1)?'true':'false'"/></li>
                             <li>
@@ -59,11 +60,14 @@
                             <li style="font-weight:bold"><p class="zj" th:text="'￥'+${cartInfo.CartPrice}">￥22995.00</p>
                             </li>
                             <li>
-                                <p>删除</p>
+                                <a th:attr="cartInfoId=${cartInfo.id}" class="deleteSingle">删除</a>
                             </li>
                         </ol>
                     </div>
                 </li>
+
+
+
 
             </ul>
         </div>
@@ -71,7 +75,7 @@
             <div>
                 <ul>
                     <li><input type="checkbox" class="allCheck"><span>全选</span></li>
-                    <li>删除选中的商品</li>
+                    <li id="deleteBatch">删除选中的商品</li>
                     <li>移到我的关注</li>
                     <li>清除下柜商品</li>
                 </ul>
@@ -100,4 +104,95 @@
 </div>
 
 </body>
+
+
+<script language="JavaScript">
+
+    //界面加载完成之后
+    $(function(){
+
+        //批量删除
+        $("#deleteBatch").click(function(){
+
+            var arr = new Array();  //创建一个数组，用来存放勾选商品的id
+
+            //获取选中项
+           var checkCartInfo = $(".check:checked");
+
+           if(checkCartInfo.length <= 0){ //说明没有选择任何商品，不能删除
+
+               layer.msg('请先选择需要删除商品！', {
+                time: 3000 //20s后自动关闭
+               });
+
+               return false;
+           }
+
+            //询问框
+            layer.confirm('您确定要删除选中的商品吗？', {
+                btn: ["确定",'取消'] //按钮
+            }, function(){
+
+                //alert(checkCartInfo.length);
+                $.each(checkCartInfo,function(){  //遍历所有勾选的商品
+
+                    var cartInfoId =  $(this).attr('cartInfoId');
+                    arr.push(cartInfoId);
+                });
+
+                var CartInfoids =  arr.join(","); //得到字符串的id组合
+
+                deleteCartInfo(CartInfoids);
+
+            }, function(){
+            });
+
+        });
+
+        //单个删除
+        $(".deleteSingle").click(function(){
+            var cartInfoId =$(this).attr('cartInfoId');
+            //询问框
+            layer.confirm('您确定要删除该商品吗？', {
+                btn: ["确定",'取消'] //按钮
+            }, function(){
+
+                deleteCartInfo(cartInfoId);
+
+            }, function(){
+            });
+
+        });
+
+        function deleteCartInfo(ids) {
+            //向后台发送ajax请求
+            $.post(
+                "deleteCartInfo",
+                {ids:ids,_method:"DELETE"},
+                function(result){
+                    if(result.code == 0){
+                        //alert(result.msg);
+                        layer.msg(result.msg, {
+                            time: 2000 //20s后自动关闭
+                        });
+                        window.location.href="http://cart.gmall.com:8084/cartList";
+                    }
+
+                });
+            
+        }
+
+
+        //商品删除鼠标移入变色
+        $(".deleteSingle").mouseover(function(){
+            $(this).css({"cursor":"pointer","color":"#e64346"});
+        }).mouseout(function(){
+            $(this).css({"cursor":"pointer","color":"gray"});
+        })
+
+    });
+
+
+</script>
+
 </html>

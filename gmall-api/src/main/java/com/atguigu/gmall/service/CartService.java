@@ -25,4 +25,5 @@ public interface CartService {
     void combine(String userId, List<CartInfo> cartInfos) ;
 
     void deleteCartInfoAfterOrder(String cartInfoIdStrings,String userId);
+
 }

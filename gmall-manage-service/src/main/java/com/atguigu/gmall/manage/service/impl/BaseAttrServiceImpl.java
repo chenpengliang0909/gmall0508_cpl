@@ -156,8 +156,6 @@ public class BaseAttrServiceImpl implements BaseAttrService {
     @Override
     public List<BaseAttrInfo> getAttrListByValueId(String valueId) {
 
-
-
         //结果为  1,23,45,2,18
         List<BaseAttrInfo> baseAttrInfos = baseAttrInfoMapper.selectAttrListByValueId(valueId);
 

@@ -4,8 +4,8 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.bean.CartInfo;
 import com.atguigu.gmall.cart.mapper.CartInfoMapper;
-import com.atguigu.gmall.util.RedisUtil;
 import com.atguigu.gmall.service.CartService;
+import com.atguigu.gmall.util.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import redis.clients.jedis.Jedis;
 import tk.mybatis.mapper.entity.Example;
@@ -107,12 +107,12 @@ public class CartServiceImpl implements CartService {
             jedis.del(key); //在进行更新之前，需要删除Redis中的数据，这种增量式的只针对hash(map)这种数据结构
             jedis.hmset(key, map); //保存后的结果为：一个userid在Redis中只有一条数据
             jedis.close(); //Redis连接用完要及时关闭
-            
+
 
         } else { //说明该用户在购物车中无商品信息
 
             Jedis jedis = redisUtil.getJedis();
-           // Map<String, String> map = new HashMap<>();
+            // Map<String, String> map = new HashMap<>();
 
             //jedis.hmset(key, map); //将缓存中，该用户的购物车信息设置为空
             jedis.del(key);
@@ -176,7 +176,8 @@ public class CartServiceImpl implements CartService {
         cartInfoParam.setUserId(userId);
         List<CartInfo> cartInfoListDB = cartInfoMapper.select(cartInfoParam);
 
-        lable:for (CartInfo cartInfoCookie : cartInfoListCookie) { //lable标签，用来表示跳过当次循环，进入下一次循环
+        lable:
+        for (CartInfo cartInfoCookie : cartInfoListCookie) { //lable标签，用来表示跳过当次循环，进入下一次循环
 
             if (cartInfoListDB != null && cartInfoListDB.size() > 0) { //说明数据库中有购物车数据
 
@@ -207,11 +208,11 @@ public class CartServiceImpl implements CartService {
     }
 
     /***
-     * 提交订单后，删除购物车中勾选的商品
+     * 删除购物车中勾选的商品
      * @param cartInfoIdStrings
      */
     @Override
-    public void deleteCartInfoAfterOrder(String cartInfoIdStrings,String userId) {
+    public void deleteCartInfoAfterOrder(String cartInfoIdStrings, String userId) {
 
         cartInfoMapper.deleteByCartInfoIds(cartInfoIdStrings);
 
@@ -219,6 +220,4 @@ public class CartServiceImpl implements CartService {
         flushCartCacheByUserId(userId);
 
     }
-
-
 }

@@ -3,8 +3,10 @@
 
 	<head>
 		<meta charset="utf-8" />
-		<script src="js/jquery-3.1.1.min.js"></script>
-		<link rel="stylesheet" type="text/css" href="css/JD2.css" />
+		<script src="/js/jquery-3.1.1.min.js"></script>
+		<script src="/bootstrap/js/bootstrap.js"></script>
+		<link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.css">
+		<link rel="stylesheet" type="text/css" href="/css/JD2.css" />
 
 		<title></title>
 	</head>
@@ -48,14 +50,14 @@
 
 		<!--主体部分-->
 		<p class="p1">填写并核对订单信息</p>
+
+
 		<div class="section">
 			<!--收货人信息-->
 			<div class="top-2">
 				<span>收货人信息</span>
-				<span>新增收货地址</span>
+				<a id="addUserAddressBtn">新增收货地址</a>
 			</div>
-
-
 
 			<!--地址-->
 			<div class="top-3">
@@ -122,46 +124,47 @@
 			<input name="addressId" id="addressId"  type="hidden"/>
 			<input name="tradeCode" type="hidden"  th:value="${tradeCode}"  />
 		</form>
-		<script>
-            $(function() {
 
-                $("#submitButton").click(function () {
-                   $("#addressId").val( $("input[type='radio']:checked").val()); //设置 选中的收货地址的id
-
-					$("#orderForm").submit();
-                });
-
-
-                $('.header-right li:nth-of-type(6)').hover(function(){
-                    $('.header-r-11').css('display','block')
-                },function(){
-                    $('.header-r-11').css('display','none')
-                })
-                $('.header-right li:nth-of-type(12)').hover(function(){
-                    $('.header-r-2').css('display','block')
-                },function(){
-                    $('.header-r-2').css('display','none')
-                })
-                $('.header-right li:nth-of-type(14)').hover(function(){
-                    $('.header-r-3').css('display','block')
-                },function(){
-                    $('.header-r-3').css('display','none')
-                })
-                $('.header-l-2').hover(function(){
-                    $('.header-l-d').css('display','block')
-                },function(){
-                    $('.header-l-d').css('display','none')
-                })
-                $('.header-r-4').hover(function(){
-                    $('.h-r-1').css('display','block')
-                },function(){
-                    $('.h-r-1').css('display','none')
-                })
-            })
-
-
-
-		</script>
 	</body>
+
+	<script>
+        $(function() {
+            $("#submitButton").click(function () {
+                $("#addressId").val( $("input[type='radio']:checked").val()); //设置 选中的收货地址的id
+
+                $("#orderForm").submit();
+            });
+
+
+            $('.header-right li:nth-of-type(6)').hover(function(){
+                $('.header-r-11').css('display','block')
+            },function(){
+                $('.header-r-11').css('display','none')
+            })
+            $('.header-right li:nth-of-type(12)').hover(function(){
+                $('.header-r-2').css('display','block')
+            },function(){
+                $('.header-r-2').css('display','none')
+            })
+            $('.header-right li:nth-of-type(14)').hover(function(){
+                $('.header-r-3').css('display','block')
+            },function(){
+                $('.header-r-3').css('display','none')
+            })
+            $('.header-l-2').hover(function(){
+                $('.header-l-d').css('display','block')
+            },function(){
+                $('.header-l-d').css('display','none')
+            })
+            $('.header-r-4').hover(function(){
+                $('.h-r-1').css('display','block')
+            },function(){
+                $('.h-r-1').css('display','none')
+            })
+        })
+
+
+
+	</script>
 
 </html>
